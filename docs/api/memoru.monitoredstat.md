@@ -58,7 +58,7 @@ number
 
 </td><td>
 
-The threshold value to trigger an event.
+The threshold value in bytes to trigger an event.
 
 </td></tr>
 </tbody></table>
