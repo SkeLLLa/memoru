@@ -1,0 +1,11 @@
+.github
+.release
+.vscode
+docs
+etc
+examples
+src
+temp
+test
+**/*.xxx.*
+.*
