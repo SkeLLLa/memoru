@@ -1,9 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "noEmit": false,
-    "outDir": "dist/esm",
-    "rootDir": "src"
+    "outDir": "dist/cjs",
+    "rootDir": "src",
+    "target": "ES2019",
+    "verbatimModuleSyntax": false
   },
   "extends": "./tsconfig.json",
   "include": ["src/**/*"]

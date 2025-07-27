@@ -1,4 +1,7 @@
-import { MemoryStatsMonitor, MemoryStatsMonitorOptions } from './memory-stats';
+import {
+  MemoryStatsMonitor,
+  type MemoryStatsMonitorOptions,
+} from './memory-stats.js';
 
 /**
  * Options for configuring the Memoru cache.
@@ -15,6 +18,13 @@ export interface MemoruOptions {
    * @defaultValue undefined
    */
   memoryStats?: MemoryStatsMonitorOptions;
+  /**
+   * Whether to respect GC events when deciding to rotate the cache.
+   * If true, the cache won't rotate during or immediately after GC.
+   * Requires memoryStats to be configured with monitorGC: true
+   * @defaultValue false
+   */
+  respectGC?: boolean;
 }
 
 /**
@@ -49,10 +59,31 @@ export class Memoru<K, V> {
     this._cache = new Map<K, V>();
 
     if (options.memoryStats) {
+      // If respectGC is enabled, ensure monitorGC is also enabled
+      if (options.respectGC && !options.memoryStats.monitorGC) {
+        options.memoryStats.monitorGC = true;
+      }
+
       this.memoryMonitor = new MemoryStatsMonitor(options.memoryStats);
-      this.memoryMonitor.on('threshold', () => {
+      this.memoryMonitor.on('threshold', (event) => {
+        // Skip rotation if GC is active and respectGC option is enabled
+        if (options.respectGC && event.gcActive) {
+          return;
+        }
         this.rotate();
       });
+
+      // Listen for GC events if enabled
+      if (options.respectGC) {
+        this.memoryMonitor.on('gc:start', () => {
+          // Do nothing when GC starts - threshold events will be skipped
+        });
+
+        this.memoryMonitor.on('gc:end', () => {
+          // Optional: could trigger a rotation here after GC completes
+          // if that becomes a desirable feature
+        });
+      }
     }
   }
 
@@ -62,6 +93,11 @@ export class Memoru<K, V> {
    * @internal
    */
   private rotate() {
+    // Don't rotate if GC is in progress and we're configured to respect it
+    if (this.memoryMonitor?.isGCActive()) {
+      return;
+    }
+
     this.size = 0;
     this._cache = this.cache;
     this.cache = new Map<K, V>();
@@ -76,7 +112,13 @@ export class Memoru<K, V> {
   private update(key: K, value: V) {
     this.cache.set(key, value);
     this.size++;
-    if (this.max !== undefined && this.size >= this.max) {
+
+    // Check if size-based rotation is needed and no GC is in progress
+    if (
+      this.max !== undefined &&
+      this.size >= this.max &&
+      !this.memoryMonitor?.isGCActive()
+    ) {
       this.rotate();
     }
   }

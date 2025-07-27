@@ -6,6 +6,18 @@
 import { EventEmitter } from 'events';
 
 // @public
+export enum GCKind {
+  // (undocumented)
+  Incremental = 'incremental',
+  // (undocumented)
+  Major = 'major',
+  // (undocumented)
+  Minor = 'minor',
+  // (undocumented)
+  WeakCallback = 'weak_callback',
+}
+
+// @public
 export enum HeapSpace {
   // (undocumented)
   Code = 'code_space',
@@ -45,6 +57,7 @@ export class Memoru<K, V> {
 export interface MemoruOptions {
   max?: number;
   memoryStats?: MemoryStatsMonitorOptions;
+  respectGC?: boolean;
 }
 
 // @public
@@ -53,14 +66,19 @@ export type MemoryStat = HeapSpace | ProcessMemoryStat;
 // @public
 export class MemoryStatsMonitor extends EventEmitter {
   constructor(options: MemoryStatsMonitorOptions);
+  isGCActive(): boolean;
   isMonitoring(): boolean;
   stop(): void;
+  timeSinceLastGC(): number;
 }
 
 // @public
 export interface MemoryStatsMonitorOptions {
+  gcCooldown?: number;
+  gcKinds?: GCKind[];
   interval?: number;
   monitored: MonitoredStat[];
+  monitorGC?: boolean;
 }
 
 // @public

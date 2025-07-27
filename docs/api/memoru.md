@@ -48,6 +48,15 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[GCKind](./memoru.gckind.md)
+
+</td><td>
+
+Enum of garbage collection kinds for monitoring.
+
+</td></tr>
+<tr><td>
+
 [HeapSpace](./memoru.heapspace.md)
 
 </td><td>

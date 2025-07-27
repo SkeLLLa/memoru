@@ -61,4 +61,19 @@ _(Optional)_ Maximum number of items in the cache. If not set, the cache is only
 _(Optional)_ Optional memory stats monitor configuration. If set, the cache will rotate when a memory threshold is reached.
 
 </td></tr>
+<tr><td>
+
+[respectGC?](./memoru.memoruoptions.respectgc.md)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Whether to respect GC events when deciding to rotate the cache. If true, the cache won't rotate during or immediately after GC. Requires memoryStats to be configured with monitorGC: true
+
+</td></tr>
 </tbody></table>

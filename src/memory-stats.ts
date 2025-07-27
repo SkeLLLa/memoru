@@ -1,5 +1,20 @@
 import { EventEmitter } from 'events';
+import {
+  PerformanceObserver,
+  type NodeGCPerformanceDetail,
+} from 'node:perf_hooks';
 import v8 from 'v8';
+
+/**
+ * Enum of garbage collection kinds for monitoring.
+ * @public
+ */
+export enum GCKind {
+  Minor = 'minor',
+  Major = 'major',
+  Incremental = 'incremental',
+  WeakCallback = 'weak_callback',
+}
 
 /**
  * Enum of V8 heap space names for memory monitoring.
@@ -63,6 +78,21 @@ export interface MemoryStatsMonitorOptions {
    * List of memory stats and thresholds to monitor.
    */
   monitored: MonitoredStat[];
+  /**
+   * Enable garbage collection monitoring to prevent rotations during GC.
+   * @defaultValue false
+   */
+  monitorGC?: boolean;
+  /**
+   * Types of garbage collection events to monitor.
+   * @defaultValue All GC kinds if monitorGC is true
+   */
+  gcKinds?: GCKind[];
+  /**
+   * Time in milliseconds to wait after a GC event before allowing rotations.
+   * @defaultValue 500
+   */
+  gcCooldown?: number;
 }
 
 /**
@@ -72,6 +102,9 @@ export interface MemoryStatsMonitorOptions {
 export class MemoryStatsMonitor extends EventEmitter {
   private intervalId?: NodeJS.Timeout | undefined;
   private options: MemoryStatsMonitorOptions;
+  private gcObserver?: PerformanceObserver | undefined;
+  private isGCInProgress = false;
+  private lastGCTime = 0;
 
   /**
    * Create a new MemoryStatsMonitor.
@@ -82,6 +115,110 @@ export class MemoryStatsMonitor extends EventEmitter {
     super();
     this.options = options;
     this.start();
+
+    if (options.monitorGC) {
+      this.setupGCMonitoring();
+    }
+  }
+
+  /**
+   * Set up garbage collection event monitoring.
+   * @internal
+   */
+  private setupGCMonitoring() {
+    try {
+      if (!this.gcObserver) {
+        // Create a performance observer for GC events
+        this.gcObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+
+          for (const entry of entries) {
+            if (entry.entryType === 'gc') {
+              const detail = entry.detail as
+                | NodeGCPerformanceDetail
+                | undefined;
+              const kind = detail?.kind ?? 0;
+              const gcKind = this.mapGCKind(kind);
+              const shouldMonitor =
+                !this.options.gcKinds ||
+                this.options.gcKinds.includes(gcKind as GCKind);
+
+              if (shouldMonitor) {
+                this.isGCInProgress = true;
+                this.lastGCTime = Date.now();
+                this.emit('gc:start', {
+                  type: gcKind,
+                  kind,
+                  duration: entry.duration,
+                  startTime: entry.startTime,
+                });
+
+                // After cooldown period, mark GC as completed
+                const cooldownTime = this.options.gcCooldown ?? 500;
+                setTimeout(() => {
+                  this.isGCInProgress = false;
+                  this.emit('gc:end', {
+                    type: gcKind,
+                    kind,
+                    duration: entry.duration,
+                    startTime: entry.startTime,
+                  });
+                }, cooldownTime);
+              }
+            }
+          }
+        });
+
+        // Subscribe to GC notifications
+        this.gcObserver.observe({ entryTypes: ['gc'] });
+      }
+    } catch (error) {
+      console.warn('Failed to set up GC monitoring:', error);
+    }
+  }
+
+  /**
+   * Map Node.js GC kinds to our enum values.
+   * @param kind - The GC kind number as reported by PerformanceObserver
+   * @internal
+   */
+  private mapGCKind(kind: number): string {
+    // Map numeric GC kind to our enum values
+    // Based on Node.js GC kind constants:
+    // 1: Scavenge (minor GC)
+    // 2: Mark-Sweep-Compact (major GC)
+    // 4: Incremental marking
+    // 8: Weak callbacks
+    switch (kind) {
+      case 1:
+        return GCKind.Minor;
+      case 2:
+        return GCKind.Major;
+      case 4:
+        return GCKind.Incremental;
+      case 8:
+        return GCKind.WeakCallback;
+      default:
+        return `unknown-${kind.toString()}`;
+    }
+  }
+
+  /**
+   * Check if garbage collection is currently in progress.
+   * @returns true if GC is in progress, false otherwise
+   * @public
+   */
+  isGCActive(): boolean {
+    return this.isGCInProgress;
+  }
+
+  /**
+   * Get the time elapsed since the last GC event in milliseconds.
+   * @returns Number of milliseconds since last GC, or Infinity if no GC has occurred
+   * @public
+   */
+  timeSinceLastGC(): number {
+    return this.lastGCTime > 0 ? Date.now() - this.lastGCTime : Infinity;
   }
 
   /**
@@ -90,6 +227,11 @@ export class MemoryStatsMonitor extends EventEmitter {
    */
   private start() {
     this.intervalId = setInterval(() => {
+      // Skip threshold checks if GC is currently in progress
+      if (this.options.monitorGC && this.isGCInProgress) {
+        return;
+      }
+
       // Optimization: fetch stats only once per interval
       const stats = v8.getHeapSpaceStatistics();
       const statsMap = new Map(stats.map((s) => [s.space_name, s]));
@@ -110,6 +252,8 @@ export class MemoryStatsMonitor extends EventEmitter {
                 stat: monitor.stat,
                 value: statValue,
                 threshold: monitor.threshold,
+                gcActive: this.isGCInProgress,
+                timeSinceLastGC: this.timeSinceLastGC(),
               });
             }
           }
@@ -125,6 +269,8 @@ export class MemoryStatsMonitor extends EventEmitter {
               stat: monitor.stat,
               value,
               threshold: monitor.threshold,
+              gcActive: this.isGCInProgress,
+              timeSinceLastGC: this.timeSinceLastGC(),
             });
           }
         }
@@ -140,6 +286,11 @@ export class MemoryStatsMonitor extends EventEmitter {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = undefined;
+    }
+
+    if (this.gcObserver) {
+      this.gcObserver.disconnect();
+      this.gcObserver = undefined;
     }
   }
 

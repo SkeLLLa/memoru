@@ -5,10 +5,11 @@
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
     "noEmit": true,
-    "target": "ES2019"
+    "target": "ES2022",
+    "verbatimModuleSyntax": true
   },
   "exclude": ["dist/**/*", "coverage/**/*", "node_modules/**/*"],
   "extends": [

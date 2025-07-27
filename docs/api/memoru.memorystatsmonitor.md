@@ -59,6 +59,17 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[isGCActive()](./memoru.memorystatsmonitor.isgcactive.md)
+
+</td><td>
+
+</td><td>
+
+Check if garbage collection is currently in progress.
+
+</td></tr>
+<tr><td>
+
 [isMonitoring()](./memoru.memorystatsmonitor.ismonitoring.md)
 
 </td><td>
@@ -77,6 +88,17 @@ Check if the monitor is currently active.
 </td><td>
 
 Stop the monitoring loop.
+
+</td></tr>
+<tr><td>
+
+[timeSinceLastGC()](./memoru.memorystatsmonitor.timesincelastgc.md)
+
+</td><td>
+
+</td><td>
+
+Get the time elapsed since the last GC event in milliseconds.
 
 </td></tr>
 </tbody></table>

@@ -28,6 +28,7 @@ A hash-based LRU cache for Node.js that evicts entries based on memory usage or 
 - Fast hash-based LRU cache with O(1) operations
 - Eviction based on memory usage or item count
 - Optional integration with Node.js memory stats
+- Garbage collection monitoring to prevent rotations during GC
 - TypeScript support and strict types
 - Zero dependencies
 - Suitable for caching in memory-constrained environments
@@ -68,7 +69,7 @@ import { Memoru, ProcessMemoryStat } from 'memoru';
 const lru = new Memoru({
   max: 1000,
   memoryStats: {
-    thresholds: [
+    monitored: [
       { stat: ProcessMemoryStat.RSS, threshold: 100 * 1024 * 1024 }, // 100MB
     ],
     interval: 1000, // check every second
@@ -96,7 +97,7 @@ You can use the memory stats monitor directly:
 import { MemoryStatsMonitor, ProcessMemoryStat } from 'memoru';
 
 const monitor = new MemoryStatsMonitor({
-  thresholds: [{ stat: ProcessMemoryStat.RSS, threshold: 200 * 1024 * 1024 }],
+  monitored: [{ stat: ProcessMemoryStat.RSS, threshold: 200 * 1024 * 1024 }],
   interval: 5000,
 });
 
@@ -104,6 +105,31 @@ monitor.on('threshold', (stat) => {
   console.log('Memory threshold exceeded for', stat);
 });
 ```
+
+### GC Monitoring
+
+You can enable garbage collection monitoring to prevent cache rotations during garbage collection:
+
+```typescript
+import { HeapSpace, Memoru } from 'memoru';
+
+const lru = new Memoru({
+  max: 1000,
+  respectGC: true, // Prevent rotations during GC
+  memoryStats: {
+    monitorGC: true, // Enable GC monitoring
+    gcCooldown: 500, // Wait 500ms after GC before allowing rotations
+    monitored: [
+      { stat: HeapSpace.Old, threshold: 50 * 1024 * 1024 }, // 50MB
+    ],
+    interval: 1000,
+  },
+});
+```
+
+> **Note:** GC monitoring uses Node.js PerformanceObserver API and works without additional flags.
+
+````
 
 ## Demo
 
@@ -117,7 +143,7 @@ lru.set('c', 3); // 'a' is evicted
 console.log(lru.get('a')); // undefined
 console.log(lru.get('b')); // 2
 console.log(lru.get('c')); // 3
-```
+````
 
 ## See also
 

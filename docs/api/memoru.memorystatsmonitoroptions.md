@@ -33,6 +33,36 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[gcCooldown?](./memoru.memorystatsmonitoroptions.gccooldown.md)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Time in milliseconds to wait after a GC event before allowing rotations.
+
+</td></tr>
+<tr><td>
+
+[gcKinds?](./memoru.memorystatsmonitoroptions.gckinds.md)
+
+</td><td>
+
+</td><td>
+
+[GCKind](./memoru.gckind.md)<!-- -->\[\]
+
+</td><td>
+
+_(Optional)_ Types of garbage collection events to monitor.
+
+</td></tr>
+<tr><td>
+
 [interval?](./memoru.memorystatsmonitoroptions.interval.md)
 
 </td><td>
@@ -59,6 +89,21 @@ _(Optional)_ Monitoring interval in milliseconds.
 </td><td>
 
 List of memory stats and thresholds to monitor.
+
+</td></tr>
+<tr><td>
+
+[monitorGC?](./memoru.memorystatsmonitoroptions.monitorgc.md)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Enable garbage collection monitoring to prevent rotations during GC.
 
 </td></tr>
 </tbody></table>

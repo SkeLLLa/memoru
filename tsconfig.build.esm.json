@@ -1,9 +1,12 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
+    "module": "ES2022",
+    "moduleResolution": "bundler",
     "noEmit": false,
     "outDir": "dist/esm",
-    "rootDir": "src"
+    "rootDir": "src",
+    "target": "ES2019"
   },
   "extends": "./tsconfig.json",
   "include": ["src/**/*"]
