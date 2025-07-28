@@ -1,3 +1,9 @@
+## [1.1.2](https://github.com/SkeLLLa/memoru/compare/v1.1.1...v1.1.2) (2025-07-28)
+
+### 🛠 Fixes
+
+* remove esm ([9b100b4](https://github.com/SkeLLLa/memoru/commit/9b100b4e455772acf2974d4af1c5ca41e4dc753f))
+
 ## [1.1.1](https://github.com/SkeLLLa/memoru/compare/v1.1.0...v1.1.1) (2025-07-28)
 
 ### 🛠 Fixes
