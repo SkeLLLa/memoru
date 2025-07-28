@@ -1,2 +1,2 @@
-export * from './memory-stats.js';
-export * from './lru.js';
+export * from './memory-stats';
+export * from './lru';

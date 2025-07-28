@@ -1,7 +1,7 @@
 import {
   MemoryStatsMonitor,
   type MemoryStatsMonitorOptions,
-} from './memory-stats.js';
+} from './memory-stats';
 
 /**
  * Options for configuring the Memoru cache.
