@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/SkeLLLa/memoru/compare/v1.1.0...v1.1.1) (2025-07-28)
+
+### 🛠 Fixes
+
+* imports ([5ab61fd](https://github.com/SkeLLLa/memoru/commit/5ab61fdd1d87d70df8d100bde2979e758d8262f9))
+
 ## [1.1.0](https://github.com/SkeLLLa/memoru/compare/v1.0.1...v1.1.0) (2025-07-28)
 
 ### 🛠 Fixes
