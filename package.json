@@ -25,22 +25,8 @@
   },
   "license": "MIT",
   "author": "m03geek",
-  "type": "module",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/esm/index.d.ts",
-        "default": "./dist/esm/index.js"
-      },
-      "require": {
-        "types": "./dist/cjs/index.d.ts",
-        "default": "./dist/cjs/index.js"
-      }
-    }
-  },
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "directories": {
     "lib": "src",
     "doc": "docs",
@@ -48,17 +34,15 @@
     "test": "test"
   },
   "files": [
-    "dist/cjs",
-    "dist/esm"
+    "dist"
   ],
   "scripts": {
-    "build": "pnpm run build:clean && pnpm run build:cjs && pnpm run build:esm && pnpm run build:docs && pnpm run build:format",
-    "build:cjs": "tsc -p tsconfig.build.cjs.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
+    "build": "pnpm run build:clean && pnpm run build:cjs && pnpm run build:docs && pnpm run build:format",
+    "build:cjs": "tsc -p tsconfig.build.json && echo '{\"type\": \"commonjs\"}' > dist/package.json",
     "build:clean": "rm -rf dist",
     "build:docs": "api-extractor run -l && api-documenter markdown -i ./temp -o ./docs/api",
-    "build:esm": "tsc -p tsconfig.build.esm.json",
     "build:format": "pretty-quick",
-    "build:node": "pnpm run build:cjs && pnpm run build:esm",
+    "build:node": "pnpm run build:cjs",
     "examples": "tsx examples/index.ts",
     "lint": "pnpm run lint:types && pnpm run lint:codestyle && pnpm run lint:packages",
     "lint:codestyle": "eslint",
@@ -118,9 +102,8 @@
   },
   "publishConfig": {
     "access": "public",
-    "main": "dist/cjs/index.js",
-    "module": "dist/esm/index.js",
+    "main": "dist/index.js",
     "provenance": true,
-    "types": "dist/esm/index.d.ts"
+    "types": "dist/index.d.ts"
   }
 }
