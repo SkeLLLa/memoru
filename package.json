@@ -1,7 +1,7 @@
 {
   "$schema": "http://json.schemastore.org/package.json",
   "name": "memoru",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A hash-based LRU cache that evicts entries based on memory usage rather than time or item count.",
   "keywords": [
     "memoru",
